@@ -50,6 +50,7 @@ function App() {
       <div>
         {['up', 'down', 'left', 'right'].map((direction) => (
           <button
+            key={direction}
             onClick={
               state.open
                 ? handleClose

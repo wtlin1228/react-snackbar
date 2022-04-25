@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Transition } from 'react-transition-group'
 
 import { reflow, ownerWindow, debounce } from '../utils'
+import { easing, duration } from '../constants'
 
 // Translate the node so it can't be seen on the screen.
 // Later, we're going to translate the node back to its original location with `none`.
@@ -58,6 +59,7 @@ export default function Slide({
   appear,
   in: inProp,
   timeout,
+  easing,
   direction,
   onEnter,
   onEntered,
@@ -91,10 +93,9 @@ export default function Slide({
   }
 
   const handleEntering = (node, isAppearing) => {
-    // Objects enter the screen at full velocity from off-screen and
-    // slowly decelerate to a resting point.
-    const easeOut = 'cubic-bezier(0.0, 0, 0.2, 1)'
-    node.style.transition = `transform ${timeout / 1000}s ${easeOut}`
+    const timingFunction = typeof easing === 'object' ? easing.enter : easing
+    const duration = typeof timeout === 'number' ? timeout : timeout.enter
+    node.style.transition = `transform ${duration / 1000}s ${timingFunction}`
     node.style.transform = 'none'
 
     if (onEntering) {
@@ -103,9 +104,9 @@ export default function Slide({
   }
 
   const handleExit = (node) => {
-    // The sharp curve is used by objects that may return to the screen at any time.
-    const sharp = 'cubic-bezier(0.4, 0, 0.6, 1)'
-    node.style.transition = `transform ${timeout / 1000}s ${sharp}`
+    const timingFunction = typeof easing === 'object' ? easing.exit : easing
+    const duration = typeof timeout === 'number' ? timeout : timeout.exit
+    node.style.transition = `transform ${duration / 1000}s ${timingFunction}`
 
     setTranslateValue(direction, node)
 
@@ -200,8 +201,26 @@ Slide.propTypes = {
   in: PropTypes.bool,
   /**
    * The duration for the transition, in milliseconds.
+   * You may specify a single timeout for all transitions, or individually with an object.
    */
-  timeout: PropTypes.number,
+  timeout: PropTypes.oneOfType([
+    PropTypes.number,
+    PropTypes.shape({
+      enter: PropTypes.number,
+      exit: PropTypes.number,
+    }),
+  ]),
+  /**
+   * The transition timing function.
+   * You may specify a single easing or a object containing enter and exit values.
+   */
+  easing: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      enter: PropTypes.string,
+      exit: PropTypes.string,
+    }),
+  ]),
   /**
    * Direction the child node will enter from.
    */
@@ -216,7 +235,14 @@ Slide.propTypes = {
 
 Slide.defaultProps = {
   appear: true,
-  timeout: 300,
+  timeout: {
+    enter: duration.enteringScreen,
+    exit: duration.leavingScreen,
+  },
+  easing: {
+    enter: easing.easeOut,
+    exit: easing.sharp,
+  },
   direction: 'up',
   onEnter: () => {},
   onEntered: () => {},

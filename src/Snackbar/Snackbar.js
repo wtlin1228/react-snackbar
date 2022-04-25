@@ -9,9 +9,9 @@ const SnackbarRoot = ({ children }) => {
       style={{
         zIndex: 2000,
         position: 'fixed',
-        left: 8,
-        right: 8,
-        bottom: 8,
+        left: 24,
+        right: 24,
+        bottom: 24,
         display: 'flex',
         justifyContent: 'flex-end',
       }}
@@ -89,6 +89,6 @@ Snackbar.propTypes = {
 
 Snackbar.defaultProps = {
   TransitionComponent: Grow,
-  transitionDuration: 500,
+  transitionDuration: undefined,
   transitionProps: {},
 }
